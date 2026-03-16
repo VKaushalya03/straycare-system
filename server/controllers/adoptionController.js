@@ -107,12 +107,27 @@ exports.requestAdoption = async (req, res) => {
     }
 
     const listing = await AdoptionListing.findById(id);
-    if (!listing)
+
+    if (!listing) {
       return res.status(404).json({ message: "Listing not found." });
-    if (listing.status !== "Available")
+    }
+
+    // 👇 THE NEW SECURITY CHECK 👇
+    // If the person making the request is the same person who created the listing, block it!
+    if (listing.listerId.toString() === req.user.id) {
+      return res
+        .status(400)
+        .json({
+          message: "You cannot request to adopt a dog you listed yourself.",
+        });
+    }
+    // 👆 END OF SECURITY CHECK 👆
+
+    if (listing.status !== "Available") {
       return res
         .status(400)
         .json({ message: "This dog is no longer available." });
+    }
 
     listing.status = "Pending";
     listing.currentRequest = {
@@ -124,6 +139,7 @@ exports.requestAdoption = async (req, res) => {
     await listing.save();
 
     // Trigger Email to Lister
+    // (Note: We will set up the actual email sending later!)
     sendEmail(
       listing.listerDetails.email,
       "New Adoption Request!",
@@ -135,6 +151,7 @@ exports.requestAdoption = async (req, res) => {
       listing,
     });
   } catch (error) {
+    console.error("Error requesting adoption:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

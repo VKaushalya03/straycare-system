@@ -27,17 +27,25 @@ exports.createReport = async (req, res) => {
       return res.status(400).json({ message: "Only 1 video is allowed." });
     }
 
-    // Validation: 3. Add Dog Details
+    // Validation: 3. Required Fields
     if (!location || !dogDetails || !actionStatus) {
       return res
         .status(400)
         .json({ message: "Please complete all required fields." });
     }
 
+    // --- FIX: Parse the FormData strings back into objects ---
+    const parsedLocation = JSON.parse(location);
+    const parsedDogDetails = JSON.parse(dogDetails);
+    const parsedAdopter = adopterDetails ? JSON.parse(adopterDetails) : null;
+    const parsedTemp = tempGuardianDetails
+      ? JSON.parse(tempGuardianDetails)
+      : null;
+
     // Validation: 4. Action-Based Requirements
     if (
       actionStatus === "Permanently Adopted" &&
-      (!adopterDetails?.name || !adopterDetails?.contact)
+      (!parsedAdopter?.name || !parsedAdopter?.contact)
     ) {
       return res
         .status(400)
@@ -45,7 +53,7 @@ exports.createReport = async (req, res) => {
     }
     if (
       actionStatus === "Temporarily Adopted" &&
-      (!tempGuardianDetails?.name || !tempGuardianDetails?.contact)
+      (!parsedTemp?.name || !parsedTemp?.contact)
     ) {
       return res.status(400).json({
         message: "Temporary guardian's name and contact details are required.",
@@ -54,24 +62,26 @@ exports.createReport = async (req, res) => {
 
     // Process Media
     const media = files.map((file) => ({
-      url: file.path, // In production, this would be an S3 or Cloudinary URL
+      url: file.path.replace(/\\/g, "/"),
       fileType: file.mimetype.startsWith("video/") ? "video" : "image",
     }));
 
+    // --- FIX: Determine the map color based on the action ---
+    let mapColor = "Red"; // Default for Urgent Help Needed
+    if (actionStatus === "Permanently Adopted") mapColor = "Green";
+    else if (actionStatus === "Temporarily Adopted") mapColor = "Yellow";
+    else if (actionStatus === "Contacted Welfare Organizations")
+      mapColor = "Blue";
+
     // Save Report
     const newReport = new Report({
-      reporter: req.user.id, // Assumes you have middleware verifying the JWT
-      location: JSON.parse(location),
-      dogDetails: JSON.parse(dogDetails),
+      reporter: req.user.id,
+      location: parsedLocation,
+      dogDetails: parsedDogDetails,
       actionStatus,
-      adopterDetails:
-        actionStatus === "Permanently Adopted"
-          ? JSON.parse(adopterDetails)
-          : undefined,
-      tempGuardianDetails:
-        actionStatus === "Temporarily Adopted"
-          ? JSON.parse(tempGuardianDetails)
-          : undefined,
+      mapColor: mapColor, // <--- Pass the color to the database!
+      adopterDetails: parsedAdopter,
+      tempGuardianDetails: parsedTemp,
       media,
     });
 
@@ -82,15 +92,20 @@ exports.createReport = async (req, res) => {
 
     // Urgent Action Trigger
     if (actionStatus === "Urgent Help Needed") {
-      await sendUrgentEmailsToOrgs(newReport);
+      // If you haven't fully set up Nodemailer yet, this might fail, so we wrap it in a try/catch
+      try {
+        await sendUrgentEmailsToOrgs(newReport);
+      } catch (emailErr) {
+        console.error("Email failed, but report saved:", emailErr);
+      }
     }
 
     res
       .status(201)
       .json({ message: "Report submitted successfully", report: newReport });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error creating report:", error);
+    res.status(500).json({ message: "Server error while saving report." });
   }
 };
 

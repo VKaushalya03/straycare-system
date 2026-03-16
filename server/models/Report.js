@@ -55,16 +55,6 @@ const reportSchema = new mongoose.Schema(
   { timestamps: true },
 ); // Automatically handles "Date and time of report"
 
-// Pre-save middleware to assign map color based on action
-reportSchema.pre("save", function (next) {
-  const colorMap = {
-    "Permanently Adopted": "Green",
-    "Temporarily Adopted": "Yellow",
-    "Contacted Welfare Organizations": "Blue",
-    "Urgent Help Needed": "Red",
-  };
-  this.mapColor = colorMap[this.actionStatus];
-  next();
-});
+// Note: Removed the pre('save') middleware. The controller handles mapColor now!
 
 module.exports = mongoose.model("Report", reportSchema);

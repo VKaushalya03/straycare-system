@@ -89,17 +89,15 @@ exports.register = async (req, res) => {
 
     // Auto-login after registration
     const token = generateToken(newUser._id, newUser.role);
-    res
-      .status(201)
-      .json({
-        message: "Registration successful",
-        token,
-        user: {
-          id: newUser._id,
-          role: newUser.role,
-          name: newUser.name || newUser.organizationName,
-        },
-      });
+    res.status(201).json({
+      message: "Registration successful",
+      token,
+      user: {
+        id: newUser._id,
+        role: newUser.role,
+        name: newUser.name || newUser.organizationName,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error during registration." });
@@ -122,17 +120,15 @@ exports.login = async (req, res) => {
     }
 
     const token = generateToken(user._id, user.role);
-    res
-      .status(200)
-      .json({
-        message: "Login successful",
-        token,
-        user: {
-          id: user._id,
-          role: user.role,
-          name: user.name || user.organizationName,
-        },
-      });
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        role: user.role,
+        name: user.name || user.organizationName,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error during login." });
@@ -142,16 +138,7 @@ exports.login = async (req, res) => {
 // --- 3. GOOGLE SIGN-IN ---
 exports.googleSignIn = async (req, res) => {
   try {
-    const { token } = req.body; // Token sent from the React frontend
-
-    // Verify the Google token
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    const { email, name, sub: googleId } = payload;
+    const { email, name, googleId } = req.body;
 
     // Check if user already exists
     let user = await User.findOne({ email });
@@ -175,17 +162,15 @@ exports.googleSignIn = async (req, res) => {
 
     // Log them in
     const jwtToken = generateToken(user._id, user.role);
-    res
-      .status(200)
-      .json({
-        message: "Google Login successful",
-        token: jwtToken,
-        user: {
-          id: user._id,
-          role: user.role,
-          name: user.name || user.organizationName,
-        },
-      });
+    res.status(200).json({
+      message: "Google Login successful",
+      token: jwtToken,
+      user: {
+        id: user._id,
+        role: user.role,
+        name: user.name || user.organizationName,
+      },
+    });
   } catch (error) {
     console.error("Google Auth Error:", error);
     res.status(400).json({ message: "Google authentication failed." });
@@ -204,11 +189,9 @@ exports.forgotPassword = async (req, res) => {
 
     // In a full implementation, you would generate a reset token and send an email here.
     // For now, we return a success message to satisfy the UI flow.
-    res
-      .status(200)
-      .json({
-        message: "If that email exists, a password reset link has been sent.",
-      });
+    res.status(200).json({
+      message: "If that email exists, a password reset link has been sent.",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error." });

@@ -1,55 +1,98 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Signup from "./components/Signup";
-import Login from "./components/Login";
-import DiseasePrediction from "./components/DiseasePrediction"; // 1. Imported the new component
+import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-function App() {
+// Import all your pages and components
+import WelcomeLandingPage from "./components/WelcomeLandingPage";
+import AuthPage from "./components/AuthPage";
+import Dashboard from "./components/Dashboard";
+import Navigation from "./components/Navigation";
+import ReportingPage from "./components/ReportingPage";
+import AdoptionPage from "./components/AdoptionPage";
+import InformationCentre from "./components/InformationCentre"; // <-- New Import
+
+export default function App() {
+  // 1. Check if the user is already logged in when they open the app
+  const [user, setUser] = useState(() => {
+    const loggedInUser = localStorage.getItem("user");
+    return loggedInUser ? JSON.parse(loggedInUser) : null;
+  });
+
+  // 2. When they successfully log in via AuthPage
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  // 3. When they click "Logout" in the Navigation bar
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+  };
+
   return (
-    <Router>
-      <div className="App">
-        {/* Navigation Bar can go here later */}
-        <Routes>
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
+    <BrowserRouter>
+      {/* Navigation Bar */}
+      <Navigation
+        isAuthenticated={!!user}
+        userEmail={user?.email}
+        accountType={user?.role}
+        onLogout={handleLogout}
+      />
 
-          {/* 2. Added the new prediction route */}
-          <Route path="/predict" element={<DiseasePrediction />} />
+      <Routes>
+        {/* Welcome Page */}
+        <Route
+          path="/"
+          element={
+            user ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <WelcomeLandingPage
+                onGetStarted={() => (window.location.href = "/auth")}
+              />
+            )
+          }
+        />
 
-          <Route
-            path="/"
-            element={
-              <div style={{ textAlign: "center", marginTop: "50px" }}>
-                <h1>StrayCare Dashboard</h1>
-                <p>
-                  Please <Link to="/login">Login</Link> or{" "}
-                  <Link to="/signup">Signup</Link>.
-                </p>
+        {/* Auth Page */}
+        <Route
+          path="/auth"
+          element={
+            user ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <AuthPage onLogin={handleLoginSuccess} />
+            )
+          }
+        />
 
-                {/* 3. Added a quick shortcut to test the ML model */}
-                <div style={{ marginTop: "30px" }}>
-                  <h3>Try the AI Diagnosis Tool</h3>
-                  <Link to="/predict">
-                    <button
-                      style={{
-                        padding: "10px 20px",
-                        cursor: "pointer",
-                        backgroundColor: "#007BFF",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "5px",
-                      }}
-                    >
-                      Go to Disease Prediction
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            }
-          />
-        </Routes>
-      </div>
-    </Router>
+        {/* Dashboard Page: Protected! */}
+        <Route
+          path="/dashboard"
+          element={user ? <Dashboard /> : <Navigate to="/auth" />}
+        />
+
+        {/* Reporting Page: Protected! */}
+        <Route
+          path="/report"
+          element={user ? <ReportingPage /> : <Navigate to="/auth" />}
+        />
+
+        {/* Adoption Page: Protected! */}
+        <Route
+          path="/adoption"
+          element={user ? <AdoptionPage /> : <Navigate to="/auth" />}
+        />
+
+        {/* Information Centre Page: Protected! */}
+        <Route
+          path="/information" // <--- FIX: Changed from "/hub" to "/information" to match Navigation.jsx!
+          element={user ? <InformationCentre /> : <Navigate to="/auth" />}
+        />
+
+        {/* Catch-all: If they type a random URL, send them back to the start */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;

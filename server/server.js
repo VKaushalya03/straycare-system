@@ -22,6 +22,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/reports", require("./routes/reports"));
 app.use("/api/adoption", require("./routes/adoption"));
 app.use("/api/users", require("./routes/user"));
+app.use("/api/hub", require("./routes/hub"));
 
 // Basic health check route
 app.get("/", (req, res) => {

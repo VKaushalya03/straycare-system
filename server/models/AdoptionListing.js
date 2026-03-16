@@ -17,6 +17,7 @@ const adoptionListingSchema = new mongoose.Schema(
       name: { type: String, default: "Unknown" },
       breed: { type: String, required: true },
       age: { type: String, required: true },
+      gender: { type: String, enum: ["Male", "Female"] },
       location: { type: String, required: true },
       description: { type: String },
     },

@@ -23,15 +23,17 @@ const upload = multer({ storage, fileFilter, limits: { files: 3 } });
 // Open Routes (Anyone can view)
 router.get("/counts", adoptionController.getCounts);
 router.get("/", adoptionController.getListings);
-router.post("/:id/request", adoptionController.requestAdoption); // Requester doesn't strictly need to be logged in according to docs, but they must provide details
 
-// Protected Routes (Must be logged in to list or manage a dog)
+// Protected Routes (Must be logged in to list, manage, or request a dog)
 router.post(
   "/",
   authMiddleware,
   upload.array("media", 3),
   adoptionController.createListing,
 );
+
+router.post("/:id/request", authMiddleware, adoptionController.requestAdoption);
+
 router.put("/:id/confirm", authMiddleware, adoptionController.confirmAdoption);
 router.put("/:id/cancel", authMiddleware, adoptionController.cancelRequest);
 

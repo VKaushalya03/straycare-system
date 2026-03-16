@@ -32,10 +32,18 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter, limits: { files: 5 } });
 
 // Routes
-// Note: Add `authMiddleware` to these routes to ensure only logged-in users can access them
-router.post("/", upload.array("media", 5), reportController.createReport);
+// 1. ADD authMiddleware to the POST route so it knows WHO is reporting
+router.post(
+  "/",
+  authMiddleware,
+  upload.array("media", 5),
+  reportController.createReport,
+);
+
 router.get("/summary", reportController.getSummaryCounts);
 router.get("/", reportController.getAllReports);
-router.put("/:reportId/status", reportController.updateStatus);
+
+// 2. ADD authMiddleware to the PUT route so only logged-in users can update statuses
+router.put("/:reportId/status", authMiddleware, reportController.updateStatus);
 
 module.exports = router;
