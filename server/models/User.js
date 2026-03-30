@@ -23,7 +23,16 @@ const userSchema = new mongoose.Schema(
     // --- Point System ---
     rewardPoints: {
       type: Number,
-      default: 0, // Every new user starts with 0 points
+      default: 0,
+    },
+
+    // Tracks how points were earned, broken down by category.
+    // Used by the Profile "Points Breakdown" UI panel.
+    pointsBreakdown: {
+      adoptions: { type: Number, default: 0 },
+      reports: { type: Number, default: 0 },
+      healthChecks: { type: Number, default: 0 },
+      community: { type: Number, default: 0 },
     },
 
     // --- Individual Specific Fields ---
@@ -35,6 +44,18 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Contact fields for individual users — shown in the profile form.
+    phone: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    address: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     // --- Organization Specific Fields ---
     organizationName: {
       type: String,
@@ -42,7 +63,7 @@ const userSchema = new mongoose.Schema(
         return this.role === "organization";
       },
       unique: true,
-      sparse: true, // Crucial: Allows individuals to not have this field without triggering a "duplicate null" error
+      sparse: true,
       trim: true,
     },
     location: {
@@ -65,7 +86,7 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt dates
+    timestamps: true,
   },
 );
 

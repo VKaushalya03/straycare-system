@@ -11,7 +11,8 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
-// import UserProfile from './UserProfile'; // Uncomment this later when you build it!
+// Import the UserProfile component
+import { UserProfile } from "./Userprofile";
 
 export default function Navigation({
   isAuthenticated,
@@ -20,7 +21,6 @@ export default function Navigation({
   accountType = "user",
 }) {
   const location = useLocation();
-  // eslint-disable-next-line no-unused-vars
   const [showProfile, setShowProfile] = useState(false);
 
   const userNavItems = [
@@ -41,6 +41,9 @@ export default function Navigation({
 
   const navItems = accountType === "organization" ? orgNavItems : userNavItems;
 
+  // Extract the email prefix
+  const displayEmail = userEmail ? userEmail.split("@")[0] : null;
+
   return (
     <>
       <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -49,7 +52,7 @@ export default function Navigation({
             <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
               <PawPrint className="h-8 w-8 text-orange-600" />
               <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                Stay Care
+                StrayCare
               </span>
             </Link>
 
@@ -78,22 +81,23 @@ export default function Navigation({
                   </div>
 
                   {/* User Menu */}
-                  <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-200">
+                  <div className="flex items-center space-x-2 ml-2 sm:ml-4 pl-2 sm:pl-4 border-l border-gray-200">
                     <button
                       onClick={() => setShowProfile(true)}
-                      className="hidden sm:flex items-center space-x-2 hover:bg-orange-50 rounded-lg px-3 py-2 transition-colors cursor-pointer border-none bg-transparent"
+                      className="flex items-center space-x-2 hover:bg-orange-50 rounded-lg px-2 sm:px-3 py-2 transition-colors cursor-pointer border-none bg-transparent"
                     >
-                      <div className="bg-orange-100 rounded-full p-2">
+                      <div className="bg-orange-100 rounded-full p-1.5 sm:p-2">
                         <User className="h-5 w-5 text-orange-700" />
                       </div>
-                      <span className="text-sm font-semibold text-gray-700">
-                        {userEmail?.split("@")[0]}
+                      {/* Check if displayEmail exists, otherwise show a generic "My Profile" */}
+                      <span className="text-sm font-semibold text-gray-700 hidden sm:inline truncate max-w-[120px]">
+                        {displayEmail || "My Profile"}
                       </span>
                     </button>
+
                     <button
                       onClick={onLogout}
-                      className="flex items-center space-x-1 px-3 py-2 rounded-md text-gray-700 hover:bg-red-100 hover:text-red-600 transition-colors cursor-pointer border-none bg-transparent"
-                      title="Logout"
+                      className="flex items-center space-x-1 px-2 sm:px-3 py-2 rounded-md text-gray-700 hover:bg-red-100 hover:text-red-600 transition-colors cursor-pointer border-none bg-transparent"
                     >
                       <LogOut className="h-5 w-5" />
                       <span className="hidden sm:inline font-semibold">
@@ -117,10 +121,13 @@ export default function Navigation({
         </div>
       </nav>
 
-      {/* User Profile Modal (Commented out until you create it) */}
-      {/* {showProfile && userEmail && (
-        <UserProfile userEmail={userEmail} onClose={() => setShowProfile(false)} />
-      )} */}
+      {/* User Profile Modal */}
+      {showProfile && (
+        <UserProfile
+          userEmail={userEmail || ""}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </>
   );
 }

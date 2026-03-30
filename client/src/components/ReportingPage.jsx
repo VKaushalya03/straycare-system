@@ -107,8 +107,8 @@ export default function ReportingPage() {
   const fetchLiveReports = async () => {
     try {
       const [reportsRes, summaryRes] = await Promise.all([
-        fetch("http://localhost:5000/api/reports"),
-        fetch("http://localhost:5000/api/reports/summary"),
+        fetch("http://localhost:5001/api/reports"),
+        fetch("http://localhost:5001/api/reports/summary"),
       ]);
       if (reportsRes.ok) setReports(await reportsRes.json());
       if (summaryRes.ok) setSummary(await summaryRes.json());
@@ -287,7 +287,7 @@ export default function ReportingPage() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Please log in to submit a report.");
 
-      const response = await fetch("http://localhost:5000/api/reports", {
+      const response = await fetch("http://localhost:5001/api/reports", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -1139,14 +1139,14 @@ export default function ReportingPage() {
                     item.fileType === "video" ? (
                       <video
                         key={idx}
-                        src={`http://localhost:5000/${item.url}`}
+                        src={`http://localhost:5001/${item.url}`}
                         className="w-full h-24 object-cover rounded-lg"
                         controls
                       />
                     ) : (
                       <img
                         key={idx}
-                        src={`http://localhost:5000/${item.url}`}
+                        src={`http://localhost:5001/${item.url}`}
                         alt="Dog"
                         className="w-full h-24 object-cover rounded-lg shadow-sm"
                       />

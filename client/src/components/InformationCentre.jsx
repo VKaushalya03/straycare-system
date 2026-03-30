@@ -51,7 +51,7 @@ export default function InformationCentre() {
     const fetchOrganizations = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/hub/organizations",
+          "http://localhost:5001/api/hub/organizations",
         );
         if (response.ok) {
           const data = await response.json();
@@ -74,7 +74,7 @@ export default function InformationCentre() {
       setIsServicesLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/hub/services?type=${selectedPlaceType}&city=${selectedCity}`,
+          `http://localhost:5001/api/hub/services?type=${selectedPlaceType}&city=${selectedCity}`,
         );
         if (response.ok) {
           const data = await response.json();

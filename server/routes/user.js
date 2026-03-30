@@ -18,4 +18,7 @@ router.put(
   userController.updateTempDogStatus,
 );
 
+// Health Detection Points
+router.post("/profile/award-health-points", userController.awardHealthDetectionPoints);
+
 module.exports = router;

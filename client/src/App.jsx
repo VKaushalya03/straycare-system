@@ -8,7 +8,7 @@ import Dashboard from "./components/Dashboard";
 import Navigation from "./components/Navigation";
 import ReportingPage from "./components/ReportingPage";
 import AdoptionPage from "./components/AdoptionPage";
-import InformationCentre from "./components/InformationCentre"; // <-- New Import
+import InformationCentre from "./components/InformationCentre";
 
 export default function App() {
   // 1. Check if the user is already logged in when they open the app
@@ -34,8 +34,9 @@ export default function App() {
       {/* Navigation Bar */}
       <Navigation
         isAuthenticated={!!user}
-        userEmail={user?.email}
-        accountType={user?.role}
+        // Safely extract email regardless of how the backend structures the user object
+        userEmail={user?.email || user?.user?.email}
+        accountType={user?.role || user?.user?.role}
         onLogout={handleLogout}
       />
 
@@ -86,7 +87,7 @@ export default function App() {
 
         {/* Information Centre Page: Protected! */}
         <Route
-          path="/information" // <--- FIX: Changed from "/hub" to "/information" to match Navigation.jsx!
+          path="/information"
           element={user ? <InformationCentre /> : <Navigate to="/auth" />}
         />
 

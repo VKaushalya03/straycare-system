@@ -2,6 +2,16 @@ const AdoptionListing = require("../models/AdoptionListing");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 
+// ─── Points constants ──────────────────────────────────────────────────────
+const POINTS = {
+  PERMANENT_ADOPT: 500,
+  TEMP_SHELTER: 200,
+  REPORT_STRAY: 100,
+  CONTACT_WELFARE: 50,
+  HEALTH_DETECTION: 50,
+  FACILITATE_ADOPTION: 300,
+};
+
 // --- 1. Get Counts ---
 exports.getCounts = async (req, res) => {
   try {
@@ -185,10 +195,25 @@ exports.confirmAdoption = async (req, res) => {
       `Your adoption of ${listing.dogDetails.name} has been confirmed!`,
     );
 
-    // Reward points for successfully facilitating an adoption
+    // Reward points: Lister gets FACILITATE_ADOPTION points
     await User.findByIdAndUpdate(listing.listerId, {
-      $inc: { rewardPoints: 50 },
+      $inc: {
+        rewardPoints: POINTS.FACILITATE_ADOPTION,
+        "pointsBreakdown.adoptions": POINTS.FACILITATE_ADOPTION,
+      },
     });
+
+    // Get adopter email and award PERMANENT_ADOPT points
+    const adopterEmail = listing.currentRequest.requesterEmail;
+    const adopter = await User.findOne({ email: adopterEmail });
+    if (adopter) {
+      await User.findByIdAndUpdate(adopter._id, {
+        $inc: {
+          rewardPoints: POINTS.PERMANENT_ADOPT,
+          "pointsBreakdown.adoptions": POINTS.PERMANENT_ADOPT,
+        },
+      });
+    }
 
     res
       .status(200)

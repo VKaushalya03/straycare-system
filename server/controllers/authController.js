@@ -94,6 +94,7 @@ exports.register = async (req, res) => {
       token,
       user: {
         id: newUser._id,
+        email: newUser.email,
         role: newUser.role,
         name: newUser.name || newUser.organizationName,
       },
@@ -125,6 +126,7 @@ exports.login = async (req, res) => {
       token,
       user: {
         id: user._id,
+        email: user.email,
         role: user.role,
         name: user.name || user.organizationName,
       },
@@ -167,6 +169,7 @@ exports.googleSignIn = async (req, res) => {
       token: jwtToken,
       user: {
         id: user._id,
+        email: user.email,
         role: user.role,
         name: user.name || user.organizationName,
       },

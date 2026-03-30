@@ -2,6 +2,16 @@ const Report = require("../models/Report");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
 
+// ─── Points constants ──────────────────────────────────────────────────────
+const POINTS = {
+  PERMANENT_ADOPT: 500,
+  TEMP_SHELTER: 200,
+  REPORT_STRAY: 100,
+  CONTACT_WELFARE: 50,
+  HEALTH_DETECTION: 50,
+  FACILITATE_ADOPTION: 300,
+};
+
 // --- 1. Create a Report ---
 exports.createReport = async (req, res) => {
   try {
@@ -88,7 +98,12 @@ exports.createReport = async (req, res) => {
     await newReport.save();
 
     // Reward System: Add points to user for reporting
-    await User.findByIdAndUpdate(req.user.id, { $inc: { rewardPoints: 10 } });
+    await User.findByIdAndUpdate(req.user.id, {
+      $inc: {
+        rewardPoints: POINTS.REPORT_STRAY,
+        "pointsBreakdown.reports": POINTS.REPORT_STRAY,
+      },
+    });
 
     // Urgent Action Trigger
     if (actionStatus === "Urgent Help Needed") {
@@ -161,16 +176,41 @@ exports.updateStatus = async (req, res) => {
     const report = await Report.findById(reportId);
     if (!report) return res.status(404).json({ message: "Report not found." });
 
+    const oldStatus = report.actionStatus;
     report.actionStatus = newStatus;
 
     // If updating to adopted, save the new details
     if (newStatus === "Permanently Adopted") {
       report.adopterDetails = actionDetails;
-      // Bonus: Add points to the user/org who facilitated the adoption
-      await User.findByIdAndUpdate(req.user.id, { $inc: { rewardPoints: 50 } });
     }
 
-    await report.save(); // pre-save hook will automatically update the mapColor
+    await report.save();
+
+    // Award points based on status change
+    let pointsToAward = 0;
+    let category = "";
+
+    if (newStatus === "Permanently Adopted") {
+      pointsToAward = POINTS.PERMANENT_ADOPT;
+      category = "adoptions";
+    } else if (newStatus === "Temporarily Adopted") {
+      pointsToAward = POINTS.TEMP_SHELTER;
+      category = "community";
+    } else if (newStatus === "Contacted Welfare Organizations") {
+      pointsToAward = POINTS.CONTACT_WELFARE;
+      category = "community";
+    }
+
+    // Only award if transitioning to a new status
+    if (oldStatus !== newStatus && pointsToAward > 0) {
+      await User.findByIdAndUpdate(req.user.id, {
+        $inc: {
+          rewardPoints: pointsToAward,
+          [`pointsBreakdown.${category}`]: pointsToAward,
+        },
+      });
+    }
+
     res.status(200).json({ message: "Status updated successfully", report });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
