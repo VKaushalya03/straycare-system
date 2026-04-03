@@ -9,6 +9,7 @@ import Navigation from "./components/Navigation";
 import ReportingPage from "./components/ReportingPage";
 import AdoptionPage from "./components/AdoptionPage";
 import InformationCentre from "./components/InformationCentre";
+import { DiseaseDetectionPage } from "./components/DiseasePrediction";
 
 export default function App() {
   // 1. Check if the user is already logged in when they open the app
@@ -89,6 +90,12 @@ export default function App() {
         <Route
           path="/information"
           element={user ? <InformationCentre /> : <Navigate to="/auth" />}
+        />
+
+        {/* Disease Detection Page: Protected! */}
+        <Route
+          path="/disease-detection"
+          element={user ? <DiseaseDetectionPage /> : <Navigate to="/auth" />}
         />
 
         {/* Catch-all: If they type a random URL, send them back to the start */}
